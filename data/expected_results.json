@@ -1,0 +1,20 @@
+{
+  "A": {
+    "category": "critical",
+    "likely_cause": "DB connection pool exhaustion",
+    "safe_action": "Investigate leaked/long-running DB connections; limit load and restore pool capacity cautiously.",
+    "verification": "DB checkout queue and request error/latency rates recover."
+  },
+  "B": {
+    "category": "normal high load",
+    "likely_cause": "Traffic-driven CPU saturation, not DB exhaustion",
+    "safe_action": "Monitor or scale application capacity; do not roll back or change DB pool blindly.",
+    "verification": "CPU and latency stabilize while availability remains high."
+  },
+  "C": {
+    "category": "edge/ambiguous failure",
+    "likely_cause": "Missing startup setting after config change; stale DB warning is inconclusive",
+    "safe_action": "Verify current startup logs and configuration; restore last-known-good config/version if confirmed.",
+    "verification": "Startup and health checks pass on the restored configuration."
+  }
+}
