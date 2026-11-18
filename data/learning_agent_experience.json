@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "feedback": {
+        "database": {
+            "Investigate and release stuck database connections": {
+                "successes": 0,
+                "failures": 1,
+                "notes": [
+                    "SIMULATED demonstration feedback only."
+                ]
+            },
+            "Increase database connection pool capacity after review": {
+                "successes": 1,
+                "failures": 0,
+                "notes": [
+                    "SIMULATED demonstration feedback only."
+                ]
+            }
+        }
+    }
+}
