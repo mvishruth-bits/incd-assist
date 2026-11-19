@@ -1,0 +1,11 @@
+{
+  "scenario": "A",
+  "feedback": {
+    "action": "Increase database connection pool capacity after review",
+    "outcome": "simulated failure"
+  },
+  "before_action": "Increase database connection pool capacity after review. Obtain operator approval before production changes.",
+  "before_score": "Selected learning score: 8.29/10",
+  "after_action": "Increase database connection pool capacity after review. Obtain operator approval before production changes.",
+  "after_score": "Selected learning score: 6.78/10"
+}

@@ -1,6 +1,6 @@
-# Incident assistant: shared baseline
+# Incident assistant
 
-This repository starts the Agentic AI assignment with one reproducible source of
+This repository implements the Agentic AI assignment using one reproducible source of
 synthetic incident data. **A** is critical DB-pool exhaustion; **B** is a normal
 high-traffic/CPU path without DB exhaustion; **C** is an ambiguous startup
 failure after a config change (a stale DB warning is deliberately misleading).
@@ -88,24 +88,50 @@ and log the tool names, arguments, and actual returns. For a fair comparison,
 pass the same read-only scenario to all six agents; record learning feedback
 only after collecting their original decisions.
 
-## Three independent teammate handoffs
+## Team contributions
 
-The notebook, JSON, tools, contracts and environment above are the shared
-baseline, **not** anyone's assigned data task. Once every machine passes
-setup, work in parallel:
+The notebook, JSON, tools, contracts and environment above form the common
+baseline. The three independently built components are now integrated:
 
-| Owner | Independent deliverable | Handoff |
+| Owner | Contribution | Integration point |
 | --- | --- | --- |
-| Chakritha | Five distinct classical agents, tests, registry and Learning feedback hook | Importable registry, A-C results and before/after learning example to Vishruth |
-| Tanweer | Local Ollama/LangChain agent, tests and actual relevant tool-call traces | Callable agent, A-C trace/results and explicit failure behavior to Vishruth |
-| Vishruth | Streamlit selector, six-agent comparison, integration, evaluation, screenshots and submission | Runnable app, 18-row three-case table, README finalization and test/screenshots to team |
+| Chakritha | Five distinct classical agents and Learning feedback hook | `incd_assist/classical_agents.py` |
+| Tanweer | Local Ollama/LangChain agent | `incd_assist/llm_agent.py` with actual model-requested tool calls |
+| Vishruth | Streamlit selector, six-agent comparison, evaluation and submission artifacts | `app.py`, `scripts/run_evaluation.py`, `outputs/` |
 
-Use the common `AgentResult` rather than editing teammates' modules. The
-Streamlit app and five/LLM agents are **assigned work, not implemented in the
-baseline**; after integration, run the app with
+The five classical agents, Ollama agent, and Streamlit app are integrated with
+plain Python and LangChain tool binding; **LangGraph is not required**. Run the app with
 `.\.venv\Scripts\streamlit.exe run app.py` (or
-`.venv/bin/streamlit run app.py`). Evaluate three cases × six agents with
-identical visible inputs, verify at least two real relevant LLM tool calls per
-case, and demonstrate Learning before/after a manual outcome update. For C,
-check the timestamps and previous healthy version before recommending a
-recovery; keep the recommendation advisory.
+`.venv/bin/streamlit run app.py`). Select a case, click **Compare all six
+agents**, review the evidence and comparison, then optionally record a
+**simulated** success/failure in the Learning feedback section. Its history
+starts from `data/learning_agent_experience.json` and is saved locally in
+ignored `data/learning_agent_experience_integration.json`; the original
+comparison stays frozen until you click Compare again. Do not treat simulated
+feedback as a real recovery outcome.
+
+To reproduce the three-case experiment, start Ollama and run:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.run_evaluation  # Windows
+```
+
+```sh
+.venv/bin/python -m scripts.run_evaluation  # macOS/Linux
+```
+
+This writes `outputs/comparison_results.json` (18 agent rows, real LLM tool
+traces, and separate reviewer-only expected outcomes),
+`outputs/comparison_results.csv`, and
+`outputs/learning_feedback_demo.json` (a before/after score from **simulated**
+feedback; the committed seed history remains unchanged). The scenario
+selector and live six-agent comparison screenshots are in
+`outputs/screenshots/`; `outputs/test_results.txt` records the baseline and
+integration test run. Review each cause and recommendation against
+the expected outcomes manually; scores and wording are not reliable exact-match
+classifiers. Verify two different relevant LLM tools per scenario, compare
+their returned data with the recommendation, and demonstrate Learning's score
+before and after a simulated feedback entry. For C, check timestamps and the
+previous healthy version before recommending recovery. If Ollama is down or
+the model fails to call tools, the run **fails explicitly**; it does not
+fabricate a sixth result.

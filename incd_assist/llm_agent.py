@@ -5,7 +5,7 @@ import json
 import re
 from typing import Any
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
 from langchain_ollama import ChatOllama
 
@@ -25,6 +25,7 @@ class OllamaIncidentAgent:
         self.llm = ChatOllama(
             model=model,
             temperature=temperature,
+            num_predict=350,
         )
         self.last_trace: list[dict[str, Any]] = []
         self.langchain_tools = self._build_tools()
@@ -107,6 +108,9 @@ class OllamaIncidentAgent:
 
         if name not in tool_functions:
             raise ValueError(f"Unknown evidence tool: {name}")
+        allowed = {"search_logs": {"query"}}.get(name, set())
+        if set(arguments) - allowed:
+            raise ValueError(f"Unexpected arguments for {name}: {set(arguments) - allowed}")
 
         result = tool_functions[name]()
 
@@ -124,68 +128,6 @@ class OllamaIncidentAgent:
         )
 
         return result
-
-    def _collect_required_evidence(
-        self,
-        scenario: IncidentScenario,
-    ) -> None:
-        """Collect relevant evidence for each known incident scenario."""
-
-        def execute_if_missing(
-            name: str,
-            arguments: dict[str, Any],
-        ) -> None:
-            already_called = any(
-                entry["tool"] == name
-                and entry["arguments"] == arguments
-                for entry in self.last_trace
-            )
-
-            if not already_called:
-                self._execute_tool(name, arguments)
-
-        if scenario.id == "A":
-            execute_if_missing("get_metrics", {})
-            execute_if_missing(
-                "search_logs",
-                {"query": "DB"},
-            )
-
-        elif scenario.id == "B":
-            execute_if_missing("get_metrics", {})
-            execute_if_missing(
-                "search_logs",
-                {"query": "CPU"},
-            )
-            execute_if_missing(
-                "search_logs",
-                {"query": "DB"},
-            )
-
-        elif scenario.id == "C":
-            execute_if_missing(
-                "get_deployment_history",
-                {},
-            )
-            execute_if_missing(
-                "check_previous_version",
-                {},
-            )
-            execute_if_missing(
-                "search_logs",
-                {"query": "AUTH_ISSUER"},
-            )
-            execute_if_missing(
-                "search_logs",
-                {"query": "DB"},
-            )
-
-        else:
-            execute_if_missing("get_metrics", {})
-            execute_if_missing(
-                "search_logs",
-                {"query": ""},
-            )
 
     @staticmethod
     def _extract_section(
@@ -214,7 +156,7 @@ class OllamaIncidentAgent:
         if not match:
             return ""
 
-        return match.group(1).strip()
+        return re.sub(r"^[A-C]\.\s+", "", match.group(1).strip())
 
     @staticmethod
     def _parse_list(value: str) -> tuple[str, ...]:
@@ -343,80 +285,71 @@ class OllamaIncidentAgent:
         self._active_scenario = scenario
 
         try:
-            self._collect_required_evidence(scenario)
-
-            evidence_json = json.dumps(
-                self.last_trace,
-                indent=2,
-                ensure_ascii=False,
+            system_prompt = (
+                "You are an incident analyst. First call at least two DIFFERENT "
+                "relevant evidence tools. Do not answer yet. Use tool results "
+                "to check the observed data. Never invent evidence or tool arguments. "
+                "For tools with no parameters, call with empty arguments {}."
             )
 
-            system_prompt = """
-You are an incident analysis assistant.
-
-Analyze the supplied synthetic incident evidence carefully.
-
-Rules:
-- Use only the supplied evidence.
-- Distinguish symptoms from root causes.
-- Respect timestamps and event chronology.
-- Do not treat an earlier resolved warning as the current root cause.
-- Compare the current deployment with the previous healthy version.
-- Do not invent metrics, logs, configuration values, or events.
-- Recommendations must be advisory only.
-- Never claim that you executed a recovery action.
-- For database pool exhaustion, recommend investigating query duration,
-  connection usage, concurrency, and database capacity before changing
-  the pool limit.
-- For high CPU and high traffic, distinguish traffic pressure from
-  database connection exhaustion.
-- Explain uncertainty and limitations.
-
-Return exactly these sections:
-
-INCIDENT_SUMMARY:
-A concise summary.
-
-LIKELY_CAUSE:
-The most likely cause, supported by evidence.
-
-RECOMMENDED_ACTION:
-A safe advisory recommendation. Do not execute it.
-
-VERIFICATION_STEPS:
-Provide three separate numbered verification steps.
-
-LIMITATIONS:
-State the important limitations of the analysis.
-
-REASON:
-Explain why the evidence supports your conclusion.
+            human_prompt = f"""Incident {scenario.id}: {scenario.label}.
+Observed data (the same input supplied to all six agents):
+{json.dumps({
+    "metrics": dict(scenario.metrics),
+    "logs": list(scenario.logs),
+    "deployment_history": [dict(item) for item in scenario.deployment_history],
+    "previous_version": dict(scenario.previous_version),
+}, ensure_ascii=False)}
+Call two different relevant tools now. No final answer yet.
 """
 
-            human_prompt = f"""
-Analyze this incident.
-
-Scenario ID: {scenario.id}
-Scenario label: {scenario.label}
-
-Actual evidence tool calls and their results:
-{evidence_json}
-
-Pay particular attention to the event chronology.
-For scenario C, explicitly explain whether the earlier DB warning
-is related to the later AUTH_ISSUER startup failure.
-For scenario B, explain what the DB connection metrics and DB logs
-indicate about database pool health.
-"""
-
-            response = self.llm.invoke(
-                [
-                    SystemMessage(content=system_prompt),
-                    HumanMessage(content=human_prompt),
-                ]
-            )
-
-            response_text = str(response.content).strip()
+            messages = [
+                SystemMessage(content=system_prompt),
+                HumanMessage(content=human_prompt),
+            ]
+            requested_tools = {
+                "A": (("get_metrics", ""), ("search_logs", "DB")),
+                "B": (("get_metrics", ""), ("search_logs", "DB")),
+                "C": (("get_deployment_history", ""), ("search_logs", "AUTH_ISSUER")),
+            }.get(scenario.id, (("get_metrics", ""), ("search_logs", "")))
+            by_name = {item.name: item for item in self.langchain_tools}
+            for name, query in requested_tools:
+                instruction = f"Call {name} now. Return only the tool call, not text."
+                if query:
+                    instruction += f" Search for {query}."
+                messages.append(HumanMessage(content=instruction))
+                response = self.llm.bind_tools([by_name[name]]).invoke(messages)
+                messages.append(response)
+                if not response.tool_calls:
+                    raise ValueError(f"Ollama did not call required evidence tool {name}")
+                for call in response.tool_calls:
+                    if call["name"] != name or not isinstance(call["args"], dict):
+                        raise ValueError(f"Unexpected evidence tool call: {call['name']}")
+                    value = self._execute_tool(name, call["args"])
+                    messages.append(ToolMessage(
+                        content=json.dumps(value, ensure_ascii=False),
+                        tool_call_id=call["id"],
+                    ))
+            if len({entry["tool"] for entry in self.last_trace}) < 2:
+                raise ValueError("Ollama did not complete two distinct tool calls")
+            scenario_guidance = {
+                "A": "100/100 means at the limit, not above it. Long-running connections "
+                     "are possible, not confirmed. RECOMMENDED_ACTION must start by investigating "
+                     "connections, wait queues and DB capacity. Do NOT recommend increasing the pool now.",
+                "B": "The DB pool is 30/100 and healthy. Do not invent a stale DB warning "
+                     "or recommend DB recovery; mention 30/100 when assessing traffic-driven CPU and scaling.",
+                "C": "A prior DB timeout was resolved at 09:10 and is not the 10:00 "
+                     "startup failure. Cite the healthy previous version when comparing the config change.",
+            }.get(scenario.id, "")
+            messages.append(HumanMessage(content=(
+                "Now answer briefly using returned tool values. " + scenario_guidance +
+                " Recommend actions only; execute nothing. "
+                "Use these headings with colons on separate lines: INCIDENT_SUMMARY, LIKELY_CAUSE, "
+                "RECOMMENDED_ACTION, VERIFICATION_STEPS, LIMITATIONS, REASON. "
+                "Include concrete values, two verification steps and uncertainty."
+            )))
+            final_response = self.llm.invoke(messages)
+            response_text = str(final_response.content).strip()
 
             if not response_text:
                 raise ValueError("Ollama returned an empty response.")
@@ -425,6 +358,25 @@ indicate about database pool health.
                 scenario,
                 response_text,
             )
+            if scenario.id == "A" and re.match(
+                r"^\s*(?:increase|expand|raise)\b", result.recommended_action, re.IGNORECASE
+            ):
+                messages.extend([
+                    final_response,
+                    HumanMessage(content=(
+                        "That action is unsafe: the logs show a full pool but do not prove "
+                        "the database has spare capacity. Rewrite ALL six sections. "
+                        "Start RECOMMENDED_ACTION with 'Investigate' connection usage "
+                        "and wait queues; only consider a capacity adjustment after review."
+                    )),
+                ])
+                corrected = self.llm.invoke(messages)
+                result = self._parse_result(scenario, str(corrected.content).strip())
+                if re.match(
+                    r"^\s*(?:increase|expand|raise)\b",
+                    result.recommended_action, re.IGNORECASE,
+                ):
+                    raise ValueError("Ollama continued to recommend an unsafe pool increase")
 
             required_fields = (
                 result.incident_summary,
@@ -433,7 +385,8 @@ indicate about database pool health.
                 result.reason,
             )
 
-            if any(not field.strip() for field in required_fields):
+            if (any(not field.strip() for field in required_fields)
+                    or not result.verification_steps or not result.limitations):
                 raise ValueError(
                     "Ollama response is missing one or more required sections."
                 )

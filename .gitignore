@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local outcome feedback belongs to the demo machine, not committed seed data
+data/learning_agent_experience_integration.json

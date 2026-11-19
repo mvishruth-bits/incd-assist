@@ -1,0 +1,542 @@
+{
+  "results": [
+    {
+      "scenario": "A",
+      "agent_name": "Simple Reflex Agent",
+      "incident_summary": "API requests are experiencing delays because the database connection pool is fully occupied.",
+      "evidence": [
+        "Database connections: 100/100",
+        "P95 latency: 1400 ms",
+        "Error rate: 18.5%",
+        "Database pool exhaustion detected by predefined rule."
+      ],
+      "likely_cause": "Database connection pool exhaustion",
+      "recommended_action": "Investigate long-running database connections, connection wait queues and pool capacity. Review safe capacity adjustments.",
+      "verification_steps": [
+        "Review the relevant monitoring metrics.",
+        "Inspect the corresponding application logs.",
+        "Confirm recovery using availability and error-rate metrics."
+      ],
+      "limitations": [
+        "Uses predefined IF-THEN rules only.",
+        "Does not learn from previous incidents.",
+        "Does not maintain an internal memory or historical state."
+      ],
+      "reason": "Rule 1 matched: Database pool is full."
+    },
+    {
+      "scenario": "A",
+      "agent_name": "Model-Based Reflex Agent",
+      "incident_summary": "The database connection pool is fully occupied, causing API delays and errors.",
+      "evidence": [
+        "Database connections: 100/100",
+        "P95 latency: 1400 ms",
+        "Error rate: 18.5%",
+        "First observation: initial internal state created.",
+        "Internal observation number: 1"
+      ],
+      "likely_cause": "Database connection pool exhaustion",
+      "recommended_action": "Investigate long-running connections and checkout queues. Review safe pool capacity adjustments.",
+      "verification_steps": [
+        "Compare current and previous monitoring observations.",
+        "Inspect relevant application logs and deployment history.",
+        "Verify service recovery using health and availability metrics."
+      ],
+      "limitations": [
+        "Uses a simple internal state rather than a learned model.",
+        "Depends on the quality of available logs and metrics.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Internal model identified database pool saturation."
+    },
+    {
+      "scenario": "A",
+      "agent_name": "Goal-Based Agent",
+      "incident_summary": "The database connection pool is exhausted, affecting API response time and availability.",
+      "evidence": [
+        "Database connections: 100/100",
+        "P95 latency: 1400 ms",
+        "Error rate: 18.5%",
+        "Availability: 81.5%",
+        "Selected recovery goals: Bring database connections below the pool limit.; Reduce API latency.; Reduce application error rate.; Restore service availability."
+      ],
+      "likely_cause": "Database connection pool exhaustion",
+      "recommended_action": "Goal: Restore database connection availability. Step 1: Identify long-running or leaked connections. Step 2: Investigate connection wait queues. Step 3: Review safe pool capacity adjustments. Step 4: Verify database and API recovery.",
+      "verification_steps": [
+        "Confirm database connections are below the pool limit.",
+        "Check database connection wait queues.",
+        "Verify API latency has decreased.",
+        "Verify application errors have reduced."
+      ],
+      "limitations": [
+        "Uses predefined recovery goals.",
+        "Does not automatically execute recovery actions.",
+        "Depends on the quality of available metrics and logs."
+      ],
+      "reason": "Selected database recovery goal because the connection pool is completely occupied."
+    },
+    {
+      "scenario": "A",
+      "agent_name": "Utility-Based Agent",
+      "incident_summary": "The database connection pool is fully occupied, causing API delays and errors.",
+      "evidence": [
+        "Database connections: 100/100",
+        "P95 latency: 1400 ms",
+        "Error rate: 18.5%",
+        "Availability: 81.5%",
+        "Investigate and release stuck database connections: Utility score = 9.1/10",
+        "Increase database connection pool capacity after review: Utility score = 7.55/10",
+        "Restart all application services immediately: Utility score = 5.7/10",
+        "Selected action: Investigate and release stuck database connections",
+        "Highest utility score: 9.1/10"
+      ],
+      "likely_cause": "Database connection pool exhaustion",
+      "recommended_action": "Investigate and release stuck database connections. Obtain operator approval before executing any production change.",
+      "verification_steps": [
+        "Check database connection utilization.",
+        "Verify connection wait queues decrease.",
+        "Verify API latency improves.",
+        "Confirm application error rate decreases."
+      ],
+      "limitations": [
+        "Utility weights are predefined.",
+        "Scores are estimates and not measured recovery probabilities.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Evaluated multiple recovery alternatives using weighted utility scores and selected the highest-scoring action."
+    },
+    {
+      "scenario": "A",
+      "agent_name": "Learning Agent",
+      "incident_summary": "Database connections are fully occupied.",
+      "evidence": [
+        "Database connections: 100/100",
+        "P95 latency: 1400 ms",
+        "Error rate: 18.5%",
+        "Investigate and release stuck database connections: Base score=9.1, Learning score=6.37, Feedback records=1",
+        "Increase database connection pool capacity after review: Base score=7.55, Learning score=8.29, Feedback records=1",
+        "Restart all application services immediately: Base score=5.7, Learning score=5.7, Feedback records=0",
+        "Selected action: Increase database connection pool capacity after review",
+        "Selected learning score: 8.29/10"
+      ],
+      "likely_cause": "Database connection pool exhaustion",
+      "recommended_action": "Increase database connection pool capacity after review. Obtain operator approval before production changes.",
+      "verification_steps": [
+        "Check database connection utilization.",
+        "Verify connection wait queues decrease.",
+        "Confirm API latency and errors improve."
+      ],
+      "limitations": [
+        "Learning depends on the quality of feedback.",
+        "Uses a simple feedback-based scoring mechanism.",
+        "Feedback scores do not guarantee real-world success.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Recommendation selected using predefined scores adjusted by previous feedback."
+    },
+    {
+      "scenario": "A",
+      "agent_name": "LangChain Ollama (llama3.1:8b)",
+      "incident_summary": "API latency and DB pool exhaustion incident observed with 1400ms p95 latency and 18.5% error rate.",
+      "evidence": [
+        "get_metrics({}) -> {\"latency_p95_ms\": 1400, \"error_rate_pct\": 18.5, \"cpu_pct\": 62, \"requests_per_min\": 1800, \"db_connections_in_use\": 100, \"db_pool_limit\": 100, \"availability_pct\": 81.5}",
+        "search_logs({\"query\": \"DB\"}) -> [\"2026-11-16T10:00:00Z ERROR api request timeout waiting for DB connection (pool 100/100)\", \"2026-11-16T10:00:05Z WARN db checkout queue length 73; wait 1200ms\"]"
+      ],
+      "likely_cause": "DB pool exhaustion, indicated by 100/100 connections in use and a long-running checkout queue.",
+      "recommended_action": "Investigate connections, wait queues, and DB capacity to determine root cause and potential solutions.",
+      "verification_steps": [
+        "Check DB connection logs for long-running connections.",
+        "Verify DB capacity and adjust pool limits if necessary."
+      ],
+      "limitations": [
+        "Uncertainty about long-running connections and potential DB capacity issues."
+      ],
+      "reason": "The high error rate and long checkout queue suggest a capacity issue, but further investigation is needed to confirm."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "Simple Reflex Agent",
+      "incident_summary": "Incoming traffic is increasing CPU utilization while database connections remain healthy.",
+      "evidence": [
+        "CPU utilization: 92%",
+        "Requests per minute: 5200",
+        "Database connections: 30/100",
+        "Database pool is not exhausted."
+      ],
+      "likely_cause": "High traffic causing CPU saturation",
+      "recommended_action": "Review CPU utilization, request handling and horizontal scaling capacity.",
+      "verification_steps": [
+        "Review the relevant monitoring metrics.",
+        "Inspect the corresponding application logs.",
+        "Confirm recovery using availability and error-rate metrics."
+      ],
+      "limitations": [
+        "Uses predefined IF-THEN rules only.",
+        "Does not learn from previous incidents.",
+        "Does not maintain an internal memory or historical state."
+      ],
+      "reason": "Rule 3 matched: High traffic and CPU utilization."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "Model-Based Reflex Agent",
+      "incident_summary": "High incoming traffic is increasing CPU utilization while the database pool remains healthy.",
+      "evidence": [
+        "CPU utilization: 92%",
+        "Requests per minute: 5200",
+        "Database connections: 30/100",
+        "First observation: initial internal state created.",
+        "Internal observation number: 1"
+      ],
+      "likely_cause": "Traffic-driven CPU saturation, not DB exhaustion",
+      "recommended_action": "Monitor application CPU and consider controlled horizontal scaling.",
+      "verification_steps": [
+        "Compare current and previous monitoring observations.",
+        "Inspect relevant application logs and deployment history.",
+        "Verify service recovery using health and availability metrics."
+      ],
+      "limitations": [
+        "Uses a simple internal state rather than a learned model.",
+        "Depends on the quality of available logs and metrics.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Internal model identified high traffic and CPU pressure."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "Goal-Based Agent",
+      "incident_summary": "The system is experiencing high CPU utilization because of increased incoming traffic.",
+      "evidence": [
+        "CPU utilization: 92%",
+        "Requests per minute: 5200",
+        "Database connections: 30/100",
+        "Current error rate: 0.3%",
+        "Availability: 99.9%",
+        "Selected recovery goals: Reduce CPU utilization below 80%.; Maintain healthy database connections.; Maintain low application error rates.; Preserve service availability."
+      ],
+      "likely_cause": "High traffic causing CPU saturation",
+      "recommended_action": "Goal: Reduce CPU pressure while maintaining service availability. Step 1: Identify traffic-heavy endpoints. Step 2: Review request handling and application workload. Step 3: Evaluate controlled horizontal scaling. Step 4: Monitor CPU and response times.",
+      "verification_steps": [
+        "Confirm CPU utilization is decreasing.",
+        "Check that database connections remain healthy.",
+        "Verify API latency remains within the target.",
+        "Confirm application errors remain low."
+      ],
+      "limitations": [
+        "Uses predefined recovery goals.",
+        "Does not automatically execute recovery actions.",
+        "Depends on the quality of available metrics and logs."
+      ],
+      "reason": "Selected CPU recovery goal because traffic is high and database capacity remains available."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "Utility-Based Agent",
+      "incident_summary": "High incoming traffic is causing CPU saturation while database connections remain healthy.",
+      "evidence": [
+        "CPU utilization: 92%",
+        "Requests per minute: 5200",
+        "Database connections: 30/100",
+        "Error rate: 0.3%",
+        "Controlled horizontal application scaling: Utility score = 8.9/10",
+        "Optimize CPU-intensive application requests: Utility score = 7.85/10",
+        "Immediately restart all services: Utility score = 3.85/10",
+        "Selected action: Controlled horizontal application scaling",
+        "Highest utility score: 8.9/10"
+      ],
+      "likely_cause": "High traffic causing CPU saturation",
+      "recommended_action": "Controlled horizontal application scaling. Obtain operator approval before executing any production change.",
+      "verification_steps": [
+        "Monitor CPU utilization.",
+        "Check incoming request volume.",
+        "Confirm database connections remain healthy.",
+        "Verify API latency and error rate."
+      ],
+      "limitations": [
+        "Utility weights are predefined.",
+        "Scores are estimates and not measured recovery probabilities.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Evaluated multiple recovery alternatives using weighted utility scores and selected the highest-scoring action."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "Learning Agent",
+      "incident_summary": "High incoming traffic is increasing CPU utilization.",
+      "evidence": [
+        "CPU utilization: 92%",
+        "Requests per minute: 5200",
+        "Database connections: 30/100",
+        "Controlled horizontal application scaling: Base score=8.9, Learning score=8.9, Feedback records=0",
+        "Optimize CPU-intensive application requests: Base score=7.85, Learning score=7.85, Feedback records=0",
+        "Immediately restart all services: Base score=3.85, Learning score=3.85, Feedback records=0",
+        "Selected action: Controlled horizontal application scaling",
+        "Selected learning score: 8.9/10"
+      ],
+      "likely_cause": "High traffic causing CPU saturation",
+      "recommended_action": "Controlled horizontal application scaling. Obtain operator approval before production changes.",
+      "verification_steps": [
+        "Monitor CPU utilization.",
+        "Check incoming traffic.",
+        "Verify database connections remain healthy."
+      ],
+      "limitations": [
+        "Learning depends on the quality of feedback.",
+        "Uses a simple feedback-based scoring mechanism.",
+        "Feedback scores do not guarantee real-world success.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "No previous feedback available. Initial recommendation uses predefined scores."
+    },
+    {
+      "scenario": "B",
+      "agent_name": "LangChain Ollama (llama3.1:8b)",
+      "incident_summary": "High traffic and CPU usage with a healthy DB pool.",
+      "evidence": [
+        "get_metrics({}) -> {\"latency_p95_ms\": 480, \"error_rate_pct\": 0.3, \"cpu_pct\": 92, \"requests_per_min\": 5200, \"db_connections_in_use\": 30, \"db_pool_limit\": 100, \"availability_pct\": 99.9}",
+        "search_logs({\"query\": \"DB\"}) -> [\"2026-11-16T10:00:05Z INFO db checkout wait 4ms; pool 30/100\"]"
+      ],
+      "likely_cause": "Traffic-driven CPU usage approaching autoscaling capacity limit (cpu_pct: 92).",
+      "recommended_action": "Scale up autoscaling capacity to handle increased traffic.",
+      "verification_steps": [
+        "Monitor CPU usage and DB connections in use.",
+        "Check deployment history for recent changes."
+      ],
+      "limitations": [
+        "Uncertainty about the impact of the scheduled campaign on traffic."
+      ],
+      "reason": "The DB pool is healthy, but the high CPU usage suggests that the autoscaling capacity is approaching its limit."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "Simple Reflex Agent",
+      "incident_summary": "Application deployment 2.4.1 failed to start because the AUTH_ISSUER configuration is missing.",
+      "evidence": [
+        "Failed deployment: 2.4.1",
+        "Configuration change: AUTH_ISSUER configuration changed at 10:00Z",
+        "Previous healthy version: 2.4.0",
+        "Previous version health: healthy before config change",
+        "Previous configuration: AUTH_ISSUER present",
+        "Startup failure found in application logs. The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure."
+      ],
+      "likely_cause": "Application startup failure due to AUTH_ISSUER configuration change",
+      "recommended_action": "Compare the failed configuration with the previous healthy version 2.4.0. After operator approval, restore the correct configuration or perform a controlled rollback. Verify application startup and health metrics.",
+      "verification_steps": [
+        "Review the relevant monitoring metrics.",
+        "Inspect the corresponding application logs.",
+        "Confirm recovery using availability and error-rate metrics."
+      ],
+      "limitations": [
+        "Uses predefined IF-THEN rules only.",
+        "Does not learn from previous incidents.",
+        "Does not maintain an internal memory or historical state."
+      ],
+      "reason": "Rule 2 matched: Missing AUTH_ISSUER configuration after deployment."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "Model-Based Reflex Agent",
+      "incident_summary": "Deployment 2.4.1 failed during startup following a configuration change.",
+      "evidence": [
+        "Failed deployment: 2.4.1",
+        "Previous healthy version: 2.4.0",
+        "Previous configuration: AUTH_ISSUER present",
+        "The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.",
+        "First observation: initial internal state created.",
+        "Internal observation number: 1"
+      ],
+      "likely_cause": "Startup failure caused by missing AUTH_ISSUER configuration",
+      "recommended_action": "Verify AUTH_ISSUER and compare the configuration with the previous healthy version 2.4.0. After operator approval, restore the last-known-good configuration if the failure is confirmed.",
+      "verification_steps": [
+        "Compare current and previous monitoring observations.",
+        "Inspect relevant application logs and deployment history.",
+        "Verify service recovery using health and availability metrics."
+      ],
+      "limitations": [
+        "Uses a simple internal state rather than a learned model.",
+        "Depends on the quality of available logs and metrics.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Internal model identified a configuration failure after comparing the deployment history and log timeline."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "Goal-Based Agent",
+      "incident_summary": "The application is unavailable because the latest deployment failed during startup.",
+      "evidence": [
+        "Current availability: 0.0%",
+        "Current error rate: 100.0%",
+        "Failed deployment: 2.4.1",
+        "Previous healthy version: 2.4.0",
+        "Previous configuration: AUTH_ISSUER present",
+        "Missing AUTH_ISSUER confirmed in application logs. The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.",
+        "Selected recovery goals: Restore application startup.; Restore service availability.; Reduce error rate to an acceptable level."
+      ],
+      "likely_cause": "Application startup failure due to missing AUTH_ISSUER",
+      "recommended_action": "Goal: Restore application availability. Step 1: Verify the missing AUTH_ISSUER setting. Step 2: Compare failed version 2.4.1 with previous healthy version 2.4.0. Step 3: After operator approval, restore the correct configuration or perform a controlled rollback. Step 4: Restart and verify application health.",
+      "verification_steps": [
+        "Confirm the application starts successfully.",
+        "Verify the AUTH_ISSUER configuration.",
+        "Confirm availability has recovered.",
+        "Check that the error rate has decreased."
+      ],
+      "limitations": [
+        "Uses predefined recovery goals.",
+        "Does not automatically execute recovery actions.",
+        "Depends on the quality of available metrics and logs."
+      ],
+      "reason": "Selected the application recovery goal because the service is unavailable."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "Utility-Based Agent",
+      "incident_summary": "Deployment 2.4.1 failed because the AUTH_ISSUER setting is missing.",
+      "evidence": [
+        "Failed version: 2.4.1",
+        "Previous healthy version: 2.4.0",
+        "Previous configuration: AUTH_ISSUER present",
+        "Availability: 0.0%",
+        "Error rate: 100.0%",
+        "The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.",
+        "Restore missing AUTH_ISSUER configuration: Utility score = 9.4/10",
+        "Controlled rollback to previous healthy version: Utility score = 8.75/10",
+        "Restart application without configuration correction: Utility score = 4.05/10",
+        "Selected action: Restore missing AUTH_ISSUER configuration",
+        "Highest utility score: 9.4/10"
+      ],
+      "likely_cause": "Application startup failure due to missing AUTH_ISSUER",
+      "recommended_action": "Restore missing AUTH_ISSUER configuration. Obtain operator approval before executing any production change.",
+      "verification_steps": [
+        "Verify AUTH_ISSUER configuration.",
+        "Confirm application startup.",
+        "Check application availability.",
+        "Verify the error rate decreases."
+      ],
+      "limitations": [
+        "Utility weights are predefined.",
+        "Scores are estimates and not measured recovery probabilities.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "Evaluated multiple recovery alternatives using weighted utility scores and selected the highest-scoring action."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "Learning Agent",
+      "incident_summary": "Application startup failed after a configuration change.",
+      "evidence": [
+        "Failed deployment: 2.4.1",
+        "Previous healthy version: 2.4.0",
+        "Previous configuration: AUTH_ISSUER present",
+        "The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.",
+        "Restore missing AUTH_ISSUER configuration: Base score=9.4, Learning score=9.4, Feedback records=0",
+        "Controlled rollback to previous healthy version: Base score=8.75, Learning score=8.75, Feedback records=0",
+        "Restart application without configuration correction: Base score=4.05, Learning score=4.05, Feedback records=0",
+        "Selected action: Restore missing AUTH_ISSUER configuration",
+        "Selected learning score: 9.4/10"
+      ],
+      "likely_cause": "Startup failure due to missing AUTH_ISSUER",
+      "recommended_action": "Restore missing AUTH_ISSUER configuration. Obtain operator approval before production changes.",
+      "verification_steps": [
+        "Verify AUTH_ISSUER configuration.",
+        "Confirm successful application startup.",
+        "Check service availability and error rate."
+      ],
+      "limitations": [
+        "Learning depends on the quality of feedback.",
+        "Uses a simple feedback-based scoring mechanism.",
+        "Feedback scores do not guarantee real-world success.",
+        "Does not automatically execute recovery actions."
+      ],
+      "reason": "No previous feedback available. Initial recommendation uses predefined scores."
+    },
+    {
+      "scenario": "C",
+      "agent_name": "LangChain Ollama (llama3.1:8b)",
+      "incident_summary": "Startup failure after configuration change, version 2.4.1.",
+      "evidence": [
+        "get_deployment_history({}) -> [{\"version\": \"2.4.1\", \"status\": \"failed startup\", \"change\": \"AUTH_ISSUER configuration changed at 10:00Z\"}, {\"version\": \"2.4.0\", \"status\": \"healthy\", \"change\": \"previous running version\"}]",
+        "search_logs({\"query\": \"AUTH_ISSUER\"}) -> [\"2026-11-16T10:00:00Z ERROR app startup failed: missing AUTH_ISSUER setting\"]"
+      ],
+      "likely_cause": "Missing AUTH_ISSUER setting in configuration.",
+      "recommended_action": "Review and correct the AUTH_ISSUER configuration setting.",
+      "verification_steps": [
+        "Check the configuration file for the correct AUTH_ISSUER setting.",
+        "Verify that the previous version, 2.4.0, had the AUTH_ISSUER setting present."
+      ],
+      "limitations": [
+        "Uncertainty about the exact cause of the startup failure, as the logs only indicate a missing configuration setting."
+      ],
+      "reason": "The prior DB timeout was resolved at 09:10 and is not the 10:00 startup failure. The healthy previous version, 2.4.0, had the AUTH_ISSUER setting present."
+    }
+  ],
+  "tool_traces": {
+    "A": [
+      {
+        "scenario_id": "A",
+        "tool": "get_metrics",
+        "arguments": {},
+        "result": "{\"latency_p95_ms\": 1400, \"error_rate_pct\": 18.5, \"cpu_pct\": 62, \"requests_per_min\": 1800, \"db_connections_in_use\": 100, \"db_pool_limit\": 100, \"availability_pct\": 81.5}"
+      },
+      {
+        "scenario_id": "A",
+        "tool": "search_logs",
+        "arguments": {
+          "query": "DB"
+        },
+        "result": "[\"2026-11-16T10:00:00Z ERROR api request timeout waiting for DB connection (pool 100/100)\", \"2026-11-16T10:00:05Z WARN db checkout queue length 73; wait 1200ms\"]"
+      }
+    ],
+    "B": [
+      {
+        "scenario_id": "B",
+        "tool": "get_metrics",
+        "arguments": {},
+        "result": "{\"latency_p95_ms\": 480, \"error_rate_pct\": 0.3, \"cpu_pct\": 92, \"requests_per_min\": 5200, \"db_connections_in_use\": 30, \"db_pool_limit\": 100, \"availability_pct\": 99.9}"
+      },
+      {
+        "scenario_id": "B",
+        "tool": "search_logs",
+        "arguments": {
+          "query": "DB"
+        },
+        "result": "[\"2026-11-16T10:00:05Z INFO db checkout wait 4ms; pool 30/100\"]"
+      }
+    ],
+    "C": [
+      {
+        "scenario_id": "C",
+        "tool": "get_deployment_history",
+        "arguments": {},
+        "result": "[{\"version\": \"2.4.1\", \"status\": \"failed startup\", \"change\": \"AUTH_ISSUER configuration changed at 10:00Z\"}, {\"version\": \"2.4.0\", \"status\": \"healthy\", \"change\": \"previous running version\"}]"
+      },
+      {
+        "scenario_id": "C",
+        "tool": "search_logs",
+        "arguments": {
+          "query": "AUTH_ISSUER"
+        },
+        "result": "[\"2026-11-16T10:00:00Z ERROR app startup failed: missing AUTH_ISSUER setting\"]"
+      }
+    ]
+  },
+  "evaluation_reference_not_sent_to_agents": {
+    "A": {
+      "category": "critical",
+      "likely_cause": "DB connection pool exhaustion",
+      "safe_action": "Investigate leaked/long-running DB connections; limit load and restore pool capacity cautiously.",
+      "verification": "DB checkout queue and request error/latency rates recover."
+    },
+    "B": {
+      "category": "normal high load",
+      "likely_cause": "Traffic-driven CPU saturation, not DB exhaustion",
+      "safe_action": "Monitor or scale application capacity; do not roll back or change DB pool blindly.",
+      "verification": "CPU and latency stabilize while availability remains high."
+    },
+    "C": {
+      "category": "edge/ambiguous failure",
+      "likely_cause": "Missing startup setting after config change; stale DB warning is inconclusive",
+      "safe_action": "Verify current startup logs and configuration; restore last-known-good config/version if confirmed.",
+      "verification": "Startup and health checks pass on the restored configuration."
+    }
+  }
+}

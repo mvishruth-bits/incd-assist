@@ -35,7 +35,7 @@ class SimpleReflexAgent:
             cause = 'Application startup failure due to AUTH_ISSUER configuration change'
             summary = f'Application deployment {failed_version} failed to start because the AUTH_ISSUER configuration is missing.'
             action = f'Compare the failed configuration with the previous healthy version {previous_version}. After operator approval, restore the correct configuration or perform a controlled rollback. Verify application startup and health metrics.'
-            evidence = (f'Failed deployment: {failed_version}', f'Configuration change: {failed_change}', f'Previous healthy version: {previous_version}', f"Previous version health: {previous.get('health')}", f"Previous configuration: {previous.get('config')}", 'Startup failure found in application logs.The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.')
+            evidence = (f'Failed deployment: {failed_version}', f'Configuration change: {failed_change}', f'Previous healthy version: {previous_version}', f"Previous version health: {previous.get('health')}", f"Previous configuration: {previous.get('config')}", 'Startup failure found in application logs. The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.')
             reason = 'Rule 2 matched: Missing AUTH_ISSUER configuration after deployment.'
         elif cpu >= 85 and requests >= 4000 and (db_limit > 0) and (db_connections < db_limit * 0.8):
             cause = 'High traffic causing CPU saturation'
@@ -135,7 +135,7 @@ class GoalBasedAgent:
             summary = 'The application is unavailable because the latest deployment failed during startup.'
             action = f'Goal: Restore application availability. Step 1: Verify the missing AUTH_ISSUER setting. Step 2: Compare failed version {failed_version} with previous healthy version {healthy_version}. Step 3: After operator approval, restore the correct configuration or perform a controlled rollback. Step 4: Restart and verify application health.'
             goals = ('Restore application startup.', 'Restore service availability.', 'Reduce error rate to an acceptable level.')
-            evidence = (f'Current availability: {availability}%', f'Current error rate: {error_rate}%', f'Failed deployment: {failed_version}', f'Previous healthy version: {healthy_version}', f"Previous configuration: {previous.get('config')}", 'Missing AUTH_ISSUER confirmed in application logs.The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.')
+            evidence = (f'Current availability: {availability}%', f'Current error rate: {error_rate}%', f'Failed deployment: {failed_version}', f'Previous healthy version: {healthy_version}', f"Previous configuration: {previous.get('config')}", 'Missing AUTH_ISSUER confirmed in application logs. The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.')
             verification = ('Confirm the application starts successfully.', 'Verify the AUTH_ISSUER configuration.', 'Confirm availability has recovered.', 'Check that the error rate has decreased.')
             reason = 'Selected the application recovery goal because the service is unavailable.'
         elif db_limit > 0 and db_connections >= db_limit and (latency >= 1000 or error_rate >= 5):
@@ -194,7 +194,7 @@ class UtilityBasedAgent:
             actions = [{'name': 'Restore missing AUTH_ISSUER configuration', 'benefit': 10, 'success': 9, 'speed': 9, 'safety': 9, 'cost_efficiency': 10}, {'name': 'Controlled rollback to previous healthy version', 'benefit': 10, 'success': 9, 'speed': 8, 'safety': 8, 'cost_efficiency': 7}, {'name': 'Restart application without configuration correction', 'benefit': 2, 'success': 2, 'speed': 8, 'safety': 3, 'cost_efficiency': 9}]
             summary = f'Deployment {failed_version} failed because the AUTH_ISSUER setting is missing.'
             verification = ('Verify AUTH_ISSUER configuration.', 'Confirm application startup.', 'Check application availability.', 'Verify the error rate decreases.')
-            evidence = [f'Failed version: {failed_version}', f'Previous healthy version: {healthy_version}', f"Previous configuration: {previous.get('config')}", f'Availability: {availability}%', f'Error rate: {error_rate}%The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.']
+            evidence = [f'Failed version: {failed_version}', f'Previous healthy version: {healthy_version}', f"Previous configuration: {previous.get('config')}", f'Availability: {availability}%', f'Error rate: {error_rate}%', 'The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.']
         elif db_limit > 0 and db_connections >= db_limit and (latency >= 1000 or error_rate >= 5):
             cause = 'Database connection pool exhaustion'
             actions = [{'name': 'Investigate and release stuck database connections', 'benefit': 10, 'success': 9, 'speed': 8, 'safety': 9, 'cost_efficiency': 9}, {'name': 'Increase database connection pool capacity after review', 'benefit': 8, 'success': 8, 'speed': 7, 'safety': 7, 'cost_efficiency': 7}, {'name': 'Restart all application services immediately', 'benefit': 6, 'success': 5, 'speed': 8, 'safety': 3, 'cost_efficiency': 6}]
@@ -221,9 +221,6 @@ class UtilityBasedAgent:
         evidence.append(f"Selected action: {best_action['name']}")
         evidence.append(f"Highest utility score: {best_action['utility_score']}/10")
         return AgentResult(agent_name='Utility-Based Agent', incident_summary=summary, evidence=tuple(evidence), likely_cause=cause, recommended_action=f"{best_action['name']}. Obtain operator approval before executing any production change.", verification_steps=verification, limitations=('Utility weights are predefined.', 'Scores are estimates and not measured recovery probabilities.', 'Does not automatically execute recovery actions.'), reason='Evaluated multiple recovery alternatives using weighted utility scores and selected the highest-scoring action.')
-import json
-from pathlib import Path
-
 class LearningAgent:
 
     def __init__(self, experience_path=None):
@@ -251,7 +248,7 @@ class LearningAgent:
             summary = 'Application startup failed after a configuration change.'
             previous = dict(scenario.previous_version)
             failed = next((dict(item) for item in reversed(scenario.deployment_history) if 'failed' in item.get('status', '').lower()), {})
-            evidence = [f"Failed deployment: {failed.get('version')}", f"Previous healthy version: {previous.get('version')}", f"Previous configuration: {previous.get('config')}The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure."]
+            evidence = [f"Failed deployment: {failed.get('version')}", f"Previous healthy version: {previous.get('version')}", f"Previous configuration: {previous.get('config')}", 'The earlier DB transient timeout was marked resolved; it is historical and inconclusive for the current startup failure.']
             actions = [('Restore missing AUTH_ISSUER configuration', 9.4), ('Controlled rollback to previous healthy version', 8.75), ('Restart application without configuration correction', 4.05)]
             verification = ('Verify AUTH_ISSUER configuration.', 'Confirm successful application startup.', 'Check service availability and error rate.')
         elif limit > 0 and db >= limit and (latency >= 1000 or error >= 5):
@@ -325,6 +322,9 @@ class LearningAgent:
         print('Action:', action_name)
         print('Successful:', successful)
         print('Experience database updated:', self.experience_path)
+
+    def available_actions(self, scenario: IncidentScenario) -> tuple[str, ...]:
+        return tuple(name for name, _ in self._incident_details(scenario)[4])
 
 def create_classical_agents(experience_path=None) -> dict[str, Agent]:
     """Create fresh instances of all five classical agents."""
