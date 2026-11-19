@@ -1,0 +1,16 @@
+Scenario,Agent,Expected Cause,Predicted Cause,Classification Match,Historical DB Warning Acknowledged
+A,Simple Reflex Agent,DB connection pool exhaustion,Database connection pool exhaustion,True,N/A
+A,Model-Based Reflex Agent,DB connection pool exhaustion,Database connection pool exhaustion,True,N/A
+A,Goal-Based Agent,DB connection pool exhaustion,Database connection pool exhaustion,True,N/A
+A,Utility-Based Agent,DB connection pool exhaustion,Database connection pool exhaustion,True,N/A
+A,Learning Agent,DB connection pool exhaustion,Database connection pool exhaustion,True,N/A
+B,Simple Reflex Agent,"Traffic-driven CPU saturation, not DB exhaustion",High traffic causing CPU saturation,True,N/A
+B,Model-Based Reflex Agent,"Traffic-driven CPU saturation, not DB exhaustion","Traffic-driven CPU saturation, not DB exhaustion",True,N/A
+B,Goal-Based Agent,"Traffic-driven CPU saturation, not DB exhaustion",High traffic causing CPU saturation,True,N/A
+B,Utility-Based Agent,"Traffic-driven CPU saturation, not DB exhaustion",High traffic causing CPU saturation,True,N/A
+B,Learning Agent,"Traffic-driven CPU saturation, not DB exhaustion",High traffic causing CPU saturation,True,N/A
+C,Simple Reflex Agent,Missing startup setting after config change; stale DB warning is inconclusive,Application startup failure due to AUTH_ISSUER configuration change,True,True
+C,Model-Based Reflex Agent,Missing startup setting after config change; stale DB warning is inconclusive,Startup failure caused by missing AUTH_ISSUER configuration,True,True
+C,Goal-Based Agent,Missing startup setting after config change; stale DB warning is inconclusive,Application startup failure due to missing AUTH_ISSUER,True,True
+C,Utility-Based Agent,Missing startup setting after config change; stale DB warning is inconclusive,Application startup failure due to missing AUTH_ISSUER,True,True
+C,Learning Agent,Missing startup setting after config change; stale DB warning is inconclusive,Startup failure due to missing AUTH_ISSUER,True,True
